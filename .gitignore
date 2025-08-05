@@ -1,0 +1,96 @@
+# WordPress Core
+# Excluir todo el core de WordPress
+/wp-admin/
+/wp-includes/
+/wp-content-2/
+/wp-content/index.php
+/wp-content/languages/
+/wp-content/upgrade/
+
+# Archivos de configuración sensibles
+wp-config.php
+wp-config-local.php
+.htaccess
+
+# Archivos de base de datos
+*.sql
+*.sql.gz
+
+# Logs
+*.log
+/logs/
+error_log
+access_log
+
+# Cache y archivos temporales
+/wp-content/cache/
+/wp-content/backup*/
+/wp-content/backups/
+/wp-content/uploads/backup*/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+
+# Plugins que se instalan automáticamente
+/wp-content/plugins/akismet/
+/wp-content/plugins/hello.php
+/wp-content/plugins/hello-dolly/
+
+# Uploads (opcional - depende de tu flujo de trabajo)
+# Descomenta la siguiente línea si no quieres versionar las subidas
+/wp-content/uploads/
+
+# Temas por defecto de WordPress
+/wp-content/themes/twenty*/
+
+# Archivos del sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# Node.js (si usas herramientas de build)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Composer (si usas dependencias de PHP)
+/vendor/
+composer.lock
+
+# Archivos de entorno
+.env
+.env.local
+.env.production
+
+# Backups automáticos de plugins
+wp-content/ai1wm-backups/
+wp-content/backups-dup-lite/
+
+# Archivos de actualización
+.maintenance
+wp-content/upgrade/
+
+# Otros archivos temporales
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# Certificados SSL locales
+*.pem
+*.key
+*.crt
