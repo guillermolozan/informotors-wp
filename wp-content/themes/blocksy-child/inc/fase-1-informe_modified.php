@@ -1,66 +1,20 @@
 <?php
-$MODO_PRUEBA = false;
-// --- MODO PRUEBAS SOLO PARA ADMIN ---
-// Si se visita ?cuki=1, setea la cookie 'cuki' por 1 día
-if (isset($_GET['cuki']) && $_GET['cuki'] == '1') {
-    setcookie('cuki', '1', time() + 86400, '/'); // 86400 = 1 día
-    // Redirige para limpiar la URL y evitar re-seteo continuo
-    $url = preg_replace('/([&?])cuki=1(&|$)/', '$1', $_SERVER['REQUEST_URI']);
-    $url = rtrim($url, '&?');
-    header('Location: ' . $url);
-    exit;
-}
 
-// Si se visita ?cuki=0, destruye la cookie 'cuki'
-if (isset($_GET['cuki']) && $_GET['cuki'] == '0') {
-    setcookie('cuki', '', time() - 3600, '/'); // Expira en el pasado
-    // Redirige para limpiar la URL y evitar re-borrado continuo
-    $url = preg_replace('/([&?])cuki=0(&|$)/', '$1', $_SERVER['REQUEST_URI']);
-    $url = rtrim($url, '&?');
-    header('Location: ' . $url);
-    exit;
-}
+// DESACTIVA TODOS LOS EMAILS DE WOOCOMMERCE EN ENTORNO LOCAL (solo para pruebas)
+add_filter('woocommerce_email_enabled_new_order', '__return_false');
+add_filter('woocommerce_email_enabled_customer_processing_order', '__return_false');
+add_filter('woocommerce_email_enabled_customer_completed_order', '__return_false');
+add_filter('woocommerce_email_enabled_cancelled_order', '__return_false');
+add_filter('woocommerce_email_enabled_failed_order', '__return_false');
+add_filter('woocommerce_email_enabled_on_hold_order', '__return_false');
+add_filter('woocommerce_email_enabled_refunded_order', '__return_false');
+add_filter('woocommerce_email_enabled_customer_refunded_order', '__return_false');
+add_filter('woocommerce_email_enabled_customer_invoice', '__return_false');
+add_filter('woocommerce_email_enabled_customer_note', '__return_false');
+add_filter('woocommerce_email_enabled_customer_new_account', '__return_false');
+add_filter('woocommerce_email_enabled_customer_reset_password', '__return_false');
 
-
-
-// Mostrar aviso si la cookie está activa
-if (isset($_COOKIE['cuki']) && $_COOKIE['cuki'] == '1') {
-    // echo '<div style="background: #ffe066; color: #222; padding:10px; font-size:15px; text-align:center; z-index:9999;">Modo pruebas activo solo para ti (cookie cuki=1)</div>';
-    // Aquí puedes agregar más lógica condicional para pruebas
-    $MODO_PRUEBA=true;
-}
-
-/*
-if ($MODO_PRUEBA) {
-    // Remover hooks y shortcodes de Easy Login WooCommerce solo para ti
-    add_action('init', function() {
-        // Remover shortcodes
-        remove_shortcode('xoo_el_action');
-        remove_shortcode('xoo_el_pop');
-        remove_shortcode('xoo_el_inline_form');
-    }, 99);
-    add_action('wp_enqueue_scripts', function() {
-        // Remover scripts y estilos principales del plugin
-        wp_dequeue_script('xoo-el-js');
-        wp_dequeue_style('xoo-el-style');
-        wp_dequeue_style('xoo-el-fonts');
-    }, 99);
-    add_action('wp_footer', function() {
-        // Evitar el popup en el footer
-        remove_action('wp_footer', [xoo_el_frontend::get_instance(), 'popup_markup']);
-    }, 1);
-}
-*/
-
-
-// En functions.php o en un archivo incluido
-add_filter('body_class', function($classes) {
-    global $MODO_PRUEBA;
-    if ($MODO_PRUEBA) {
-        $classes[] = 'modo_prueba';
-    }
-    return $classes;
-});
+$MODO_PRUEBA=true;
 
 if (! defined('WP_DEBUG')) {
 	die( 'Direct access forbidden.' );
@@ -100,7 +54,9 @@ add_action('woocommerce_review_order_before_payment', 'agregar_texto_metodos_pag
 // Shortcode que añade el formulario personalizado en la pagina del FORMULARIO DE SOLICITUD DEL INFORME
 add_shortcode('solicita_tu_informe', 'display_solicita_tu_informe');
 function display_solicita_tu_informe() {
+
     global $MODO_PRUEBA;
+
     /*
 	ob_start();
     echo "<div style='font-weight:bold;color:red;display:block;'>En Revisión</div>";
@@ -120,7 +76,7 @@ function display_solicita_tu_informe() {
 	?>
 	<form id="custom-add-to-cart-form" method="post">
         <label for="placa">Ingrese la placa:</label>
-        <input type="text" name="placa" id="placa" placeholder="ABC123" required <?php echo $disabled_temporal; ?> value="<?php echo $MODO_PRUEBA ? 'CHE048' : ''; ?>" >
+        <input type="text" name="placa" id="placa" placeholder="ABC123" required <?php echo $disabled_temporal; ?> value="<?php echo $MODO_PRUEBA ? 'F6D418' : ''; ?>" >
         <button type="submit" class="ct-button" style="margin-top:1rem;" <?php echo $disabled_temporal; ?> >Solicitar Informe</button>
 	</form>
 	<style>
@@ -132,7 +88,7 @@ function display_solicita_tu_informe() {
 			label {
 				display:block;
 			}
-    	input { 
+    	    input { 
 				max-width: 100px;
 				display: block;
 			}
@@ -270,10 +226,30 @@ function handle_custom_add_to_cart() {
 // Añadir el valor de la placa a los metadatos del pedido
 add_action('woocommerce_checkout_create_order', 'add_placa_to_order_meta');
 function add_placa_to_order_meta($order) {
-    $placa = WC()->session->get('placa');
-    if (!empty($placa)) {
-        $order->update_meta_data('placa', $placa);
-        WC()->session->__unset('placa');
+    try {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('ENTRANDO A add_placa_to_order_meta. SESSION: ' . print_r(WC()->session, true));
+        }
+        $placa = WC()->session->get('placa');
+        if (!empty($placa)) {
+            $order->update_meta_data('placa', $placa);
+            WC()->session->__unset('placa');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('PLACA GUARDADA CORRECTAMENTE EN EL PEDIDO: ' . $placa);
+            }
+        } else {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('FALTA PLACA EN LA SESIÓN AL CREAR PEDIDO. SESSION: ' . print_r(WC()->session, true));
+            }
+            wc_add_notice('Error: Falta la placa del vehículo. Por favor, vuelve a ingresar la placa antes de finalizar la compra.', 'error');
+            throw new Exception('Falta la placa del vehículo en la sesión.');
+        }
+    } catch (Exception $e) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('EXCEPCIÓN EN add_placa_to_order_meta: ' . $e->getMessage());
+        }
+        wc_add_notice('Error inesperado al guardar la placa del vehículo: ' . $e->getMessage(), 'error');
+        throw $e;
     }
 }
 // Validacion en el carrito // agosto 24
@@ -291,6 +267,15 @@ function check_cart_for_placa() {
 
 // Validacion en el checkout // setiembre 24
 // product_id = 783; 
+// Forzar los valores correctos en el POST antes de la validación de WooCommerce
+add_action('woocommerce_checkout_process', function() {
+    $_POST['billing_state'] = 'Lima Metropolitana';
+    $_POST['billing_city'] = 'Lima';
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('CAMPOS ENVIADOS EN CHECKOUT: ' . print_r($_POST, true));
+    }
+});
+
 add_action('woocommerce_checkout_process', 'validate_placa_at_checkout');
 function validate_placa_at_checkout() {
   // ID del producto que deseas validar
@@ -302,22 +287,21 @@ function validate_placa_at_checkout() {
   // Variable para saber si el producto 783 está en el carrito
   $is_product_in_cart = false;
   
-  // Recorrer los productos del carrito
   foreach ($cart as $cart_item) {
     $product_id = $cart_item['product_id'];
-    
-    // Si el producto 783 está en el carrito, activar la bandera
     if ($product_id == $product_id_to_validate) {
       $is_product_in_cart = true;
       break;
     }
   }
-  
-  // Si el producto 783 está en el carrito, validar la placa
+
   if ($is_product_in_cart) {
     $placa = WC()->session->get('placa');
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+      error_log('VALIDACIÓN PLACA CHECKOUT: Valor de placa en sesión: ' . print_r($placa, true));
+    }
     if (empty($placa)) {
-      wc_add_notice('Debe ingresar una placa antes de finalizar la compra.', 'error');
+      wc_add_notice('Error: Falta la placa del vehículo en la sesión al validar el checkout. Por favor, vuelve a ingresar la placa.', 'error');
     }
   }
 }
@@ -432,15 +416,25 @@ function customizar_fields( $fields ) {
 add_filter( 'woocommerce_checkout_fields', 'customizar_checkout_fields' );
 
 function customizar_checkout_fields( $fields ) {
-
-    global $MODO_PRUEBA;
-    if($MODO_PRUEBA){
-        $fields['billing']['billing_first_name']['default'] = "Cheddar";
-        $fields['billing']['billing_last_name']['default'] = "Cheddar";
-        $fields['billing']['billing_phone']['default'] = "999888777";
-        $fields['billing']['billing_email']['default'] = "cheddar@gmail.com";
-    }
 	
+    global $MODO_PRUEBA;
+
+    if($MODO_PRUEBA){
+
+        $fields['billing']['billing_first_name']['default'] = "Cheddar";
+        $fields['shipping']['shipping_first_name']['default'] = "Cheddar";
+
+        $fields['billing']['billing_last_name']['default'] = "Cheddar";
+        $fields['shipping']['shipping_last_name']['default'] = "Cheddar";
+
+        $fields['billing']['billing_phone']['default'] = "999888777";
+        $fields['shipping']['shipping_phone']['default'] = "999888777";
+
+        $fields['billing']['billing_email']['default'] = "cheddar@w.p";
+        $fields['shipping']['shipping_email']['default'] = "cheddar@w.p";
+
+    }
+
 	$fields['billing']['billing_first_name']['label'] = "Nombres";
 	$fields['shipping']['shipping_first_name']['label'] = "Nombres";
 
@@ -453,8 +447,8 @@ function customizar_checkout_fields( $fields ) {
 	$fields['billing']['billing_email']['priority'] = 35;
 	$fields['billing']['billing_phone']['priority'] = 36;
 
-	$fields['billing']['billing_email']['class'] = array( 'form-row-first' );
-	$fields['billing']['billing_phone']['class'] = array( 'form-row-last' );
+	$fields['billing']['billing_email']['class'] = array( 'form-row-first');
+	$fields['billing']['billing_phone']['class'] = array( 'form-row-last');
 
 	unset($fields['billing']['billing_company']); 
 	unset($fields['shipping']['shipping_company']); 
@@ -470,11 +464,30 @@ function customizar_checkout_fields( $fields ) {
 
 
 
-    unset($fields['billing']['billing_address_1']);
+    // NO eliminar address_1 ni country, solo ocultar y dar valor por defecto
+    $fields['billing']['billing_address_1']['class'][] = 'ocultar_campo';
+    $fields['billing']['billing_address_1']['default'] = '-';
+    $fields['billing']['billing_country']['class'][] = 'ocultar_campo';
+    $fields['billing']['billing_country']['default'] = 'PE'; // Perú
+
     unset($fields['billing']['billing_address_2']);
-    unset($fields['billing']['billing_city']);
-    unset($fields['billing']['billing_country']);
-    unset($fields['billing']['billing_state']);
+    // NO eliminar city ni state, solo ocultar y poner valor por defecto
+    $fields['billing']['billing_city']['class'][] = 'ocultar_campo';
+    $fields['billing']['billing_city']['default'] = 'Lima';
+    $fields['billing']['billing_state']['class'][] = 'ocultar_campo';
+    $fields['billing']['billing_state']['default'] = 'Lima Metropolitana';
+    // Forzar value también para el POST
+    add_filter('woocommerce_checkout_posted_data', function($data) {
+        $data['billing_state'] = 'Lima Metropolitana';
+        $data['billing_city'] = 'Lima';
+        return $data;
+    }, 99); // prioridad ALTA para sobrescribir
+
+    // Forzar valor en el objeto Order antes de guardar
+    add_action('woocommerce_checkout_create_order', function($order) {
+        $order->set_billing_state('Lima Metropolitana');
+        $order->set_billing_city('Lima');
+    }, 99);
 
 
   return $fields;
@@ -490,7 +503,9 @@ function customizar_checkout_fields( $fields ) {
 // Agregar el campo DNI en la página de finalizar compra
 add_action( 'woocommerce_after_order_notes', 'agregar_campo_dni_finalizar_compra' );
 function agregar_campo_dni_finalizar_compra( $checkout ) {
+
     global $MODO_PRUEBA;
+
     $checkout_values= array(
         'type'        => 'text',
         'class'       => array('form-row-first'),
@@ -501,7 +516,9 @@ function agregar_campo_dni_finalizar_compra( $checkout ) {
     if($MODO_PRUEBA){
         $checkout_values['default'] = '12345678';
     }
-  woocommerce_form_field( 'dni', $checkout_values , $checkout->get_value( 'dni' ));
+
+    woocommerce_form_field( 'dni', $checkout_values , $checkout->get_value( 'dni' ));
+    
 }
 
 // Guardar el campo DNI al completar el pedido

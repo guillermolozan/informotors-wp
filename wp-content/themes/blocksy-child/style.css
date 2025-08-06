@@ -167,27 +167,43 @@ ___ ____ ____ ___ _ _  _ ____ _  _ _ ____ _    ____
   font-weight: normal;
   color: #666;
 }
-function agregar_script_contact_form() {
-    ?>
-    <script>
-    document.addEventListener('wpcf7mailsent', function(event) {
-        console.log("Evento wpcf7mailsent activado desde functions.php");
 
-        fetch("https://script.google.com/macros/s/AKfycbzZtt4ZQr4nqW4QfwKVHHiPPLrDzKamNmf7J1U4t49seOMe3qa5k8HT6neIpXlSna-qQA/exec", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                nombre: event.detail.inputs[0].value,
-                email: event.detail.inputs[1].value
-            })
-        })
-        .then(response => response.text())
-        .then(data => console.log("Respuesta de Google Apps Script:", data))
-        .catch(error => console.error("Error en envío:", error));
-    });
-    </script>
-    <?php
+form input[type="text"], form input[type="email"], form input[type="tel"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid #FF6600;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
 }
-add_action('wp_footer', 'agregar_script_contact_form');
+/*
+#menu-item-1210 {
+  display: none;
+}
+*/
+.ct-header-account {
+  display: none;
+}
+body.logged-in .ct-header-account {
+  display: block;
+}
+body.logged-in #menu-item-1210 {
+  display: none;
+}
+.wc_payment_method.payment_method_cod {
+  display: none;
+}
+body.modo_prueba .wc_payment_method.payment_method_cod {
+  display: list-item;
+}
+
+@media (max-width: 767px) {
+  .wpcf7-form {
+    width: 100%;
+  }
+}
+
+.wpcf7-form {
+  width: 50;
+}
